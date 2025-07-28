@@ -1,6 +1,13 @@
 window.onload = () => {
     listenToFileInput();
     listenToCopy();
+    initPlantUml();
+}
+
+function initPlantUml() {
+    cheerpjInit({disableLoadTimeReporting:true, disableErrorReporting:true}).then(_ => {
+        cheerpjRunMain("com.plantuml.api.cheerpj.v1.RunInit", "/app/plantuml/plantuml-core.jar");
+    });
 }
 
 function listenToCopy() {
@@ -27,12 +34,23 @@ function listenToFileInput() {
                 }
                 overwriteSharkJsonOnTextarea(result);
                 overwritePlantUmlTextArea();
+                renderPlantUml();
             };
             reader.onerror = function() {
                 alert("Failed to read the file.");
             };
             reader.readAsText(file);
         }
+    });
+}
+
+function renderPlantUml() {
+    const plantUmlTextArea = document.getElementById("plantuml-textarea");
+    const plantUmlCode = plantUmlTextArea.value;
+    cjCall("com.plantuml.api.cheerpj.v1.Svg", "convert", "light", plantUmlCode).then(svg => {
+        document.getElementById("plantuml-render").innerHTML = svg;
+    }).catch(err => {
+        console.error("Failed to render PlantUML:", err);
     });
 }
 
