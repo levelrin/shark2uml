@@ -5,6 +5,8 @@
 
 Capture network traffic using [tshark](https://tshark.dev/) and visualize it with the UML diagram.
 
+Get started from [here](https://levelrin.github.io/shark2uml).
+
 [PlantUML](https://plantuml.com/) is supported.
 
 [plantuml-core v0.0.2](https://github.com/plantuml/plantuml-core/releases/tag/v0.0.2) is used.
