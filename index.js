@@ -6,7 +6,14 @@ window.onload = () => {
 
 function initPlantUml() {
     cheerpjInit({disableLoadTimeReporting:true, disableErrorReporting:true}).then(_ => {
-        cheerpjRunMain("com.plantuml.api.cheerpj.v1.RunInit", "/app/plantuml/plantuml-core.jar");
+        // This path is for GitHub Pages.
+        // For local development, we need to change it to `/app/plantuml/plantuml-core.jar`.
+        // The `/app/` would be the domain name. Ex: `http://localhost/`.
+        // If the web app is locally hosted, the file should be accessible like this: `http://localhost/plantuml/plantuml-core.jar`.
+        // However, since the web app would be hosted as a subdirectory in GitHub Pages (ex: https://levelrin.github.io/shark2uml/), we need to add the repository name after `/app/`.
+        // By the way, it only works in HTTP(S) protocol.
+        // Just opening the `index.html` file using `file://` scheme won't work.
+        cheerpjRunMain("com.plantuml.api.cheerpj.v1.RunInit", "/app/shark2uml/plantuml/plantuml-core.jar");
     });
 }
 
