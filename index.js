@@ -1,7 +1,20 @@
 window.onload = () => {
+    initPlantUml();
     listenToFileInput();
     listenToCopy();
-    initPlantUml();
+    listenToSharkJsonInput();
+}
+
+function listenToSharkJsonInput() {
+    const textarea = document.getElementById("shark-json-textarea");
+    let debounceTimeout;
+    textarea.addEventListener("input", () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            overwritePlantUmlTextArea();
+            renderPlantUml();
+        }, 2000);
+    });
 }
 
 function initPlantUml() {
