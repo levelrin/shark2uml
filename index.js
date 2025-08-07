@@ -3,6 +3,18 @@ window.onload = () => {
     listenToFileInput();
     listenToCopy();
     listenToSharkJsonInput();
+    listenToPlantUmlInput();
+}
+
+function listenToPlantUmlInput() {
+    const textarea = document.getElementById("plantuml-textarea");
+    let debounceTimeout;
+    textarea.addEventListener("input", () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+            renderPlantUml();
+        }, 2000);
+    });
 }
 
 function listenToSharkJsonInput() {
