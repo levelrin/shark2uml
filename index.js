@@ -114,24 +114,24 @@ function generatePlantUml(sharkJson) {
 function walkSharkJson(sharkJson, listener) {
     sharkJson.forEach(message => {
         // Ex: ["google.com"]
-        const host = message._source?.layers?.["http.host"];
-        if (host !== undefined) {
-            listener.enterHost(host[0]);
+        const httpHost = message._source?.layers?.["http.host"];
+        if (httpHost !== undefined) {
+            listener.enterHttpHost(httpHost[0]);
         }
         // Ex: ["GET"]
-        const requestMethod = message._source?.layers?.["http.request.method"];
-        if (requestMethod !== undefined) {
-            listener.enterRequestMethod(requestMethod[0]);
+        const httpRequestMethod = message._source?.layers?.["http.request.method"];
+        if (httpRequestMethod !== undefined) {
+            listener.enterHttpRequestMethod(httpRequestMethod[0]);
         }
         // Ex: ["/"]
-        const requestUri = message._source?.layers?.["http.request.uri"];
-        if (requestUri !== undefined) {
-            listener.enterRequestUri(requestUri[0]);
+        const httpRequestUri = message._source?.layers?.["http.request.uri"];
+        if (httpRequestUri !== undefined) {
+            listener.enterHttpRequestUri(httpRequestUri[0]);
         }
         // Ex: ["HTTP/1.1"]
-        const requestVersion = message._source?.layers?.["http.request.version"];
-        if (requestVersion !== undefined) {
-            listener.enterRequestVersion(requestVersion[0]);
+        const httpRequestVersion = message._source?.layers?.["http.request.version"];
+        if (httpRequestVersion !== undefined) {
+            listener.enterHttpRequestVersion(httpRequestVersion[0]);
         }
         // Ex:
         // [
@@ -141,24 +141,24 @@ function walkSharkJson(sharkJson, listener) {
         // ]
         // Wireshark uses the attribute `http.request.line`, for some reason, but it's actually headers.
         // Also note that each header ends with a linebreak.
-        const requestHeaders = message._source?.layers?.["http.request.line"];
-        if (requestHeaders !== undefined) {
-            listener.enterRequestHeaders(requestHeaders);
+        const httpRequestLine = message._source?.layers?.["http.request.line"];
+        if (httpRequestLine !== undefined) {
+            listener.enterHttpRequestLine(httpRequestLine);
         }
         // Ex: ["HTTP/1.1"]
-        const responseVersion = message._source?.layers?.["http.response.version"];
-        if (responseVersion !== undefined) {
-            listener.enterResponseVersion(responseVersion[0]);
+        const httpResponseVersion = message._source?.layers?.["http.response.version"];
+        if (httpResponseVersion !== undefined) {
+            listener.enterHttpResponseVersion(httpResponseVersion[0]);
         }
         // Ex: ["301"]
-        const statusCode = message._source?.layers?.["http.response.code"];
-        if (statusCode !== undefined) {
-            listener.enterStatusCode(statusCode[0]);
+        const httpResponseCode = message._source?.layers?.["http.response.code"];
+        if (httpResponseCode !== undefined) {
+            listener.enterHttpResponseCode(httpResponseCode[0]);
         }
         // Ex: ["Moved Permanently"]
-        const reasonPhrase = message._source?.layers?.["http.response.code.desc"];
-        if (reasonPhrase !== undefined) {
-            listener.enterReasonPhrase(reasonPhrase[0]);
+        const httpResponseCodeDesc = message._source?.layers?.["http.response.code.desc"];
+        if (httpResponseCodeDesc !== undefined) {
+            listener.enterHttpResponseCodeDesc(httpResponseCodeDesc[0]);
         }
         // Ex:
         // [
@@ -175,14 +175,14 @@ function walkSharkJson(sharkJson, listener) {
         // ]
         // Wireshark uses the attribute `http.response.line`, for some reason, but it's actually headers.
         // Also note that each header ends with a linebreak.
-        const responseHeaders = message._source?.layers?.["http.response.line"];
-        if (responseHeaders !== undefined) {
-            listener.enterResponseHeaders(responseHeaders);
+        const httpResponseLine = message._source?.layers?.["http.response.line"];
+        if (httpResponseLine !== undefined) {
+            listener.enterHttpResponseLine(httpResponseLine);
         }
         // Ex: ["<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<TITLE>301 Moved<\/TITLE><\/HEAD><BODY>\n<H1>301 Moved<\/H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here<\/A>.\r\n<\/BODY><\/HTML>\r\n"]
-        const body = message._source?.layers?.["http.file_data"];
-        if (body !== undefined) {
-            listener.enterBody(body[0]);
+        const httpFileData = message._source?.layers?.["http.file_data"];
+        if (httpFileData !== undefined) {
+            listener.enterHttpFileData(httpFileData[0]);
         }
     });
 }
@@ -222,7 +222,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the host.
      * @param host Ex: "google.com"
      */
-    enterHost(host) {
+    enterHttpHost(host) {
         this.host = host;
     }
 
@@ -230,7 +230,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the HTTP request method.
      * @param requestMethod Ex: "GET"
      */
-    enterRequestMethod(requestMethod) {
+    enterHttpRequestMethod(requestMethod) {
         this.stringBuilder.push("\nlocal -> " + this.host + ": <color red>" + requestMethod + " ");
     }
 
@@ -238,7 +238,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the HTTP URI.
      * @param requestUri Ex: "/"
      */
-    enterRequestUri(requestUri) {
+    enterHttpRequestUri(requestUri) {
         this.stringBuilder.push(requestUri + " ");
     }
 
@@ -246,7 +246,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the HTTP version.
      * @param version Ex: "HTTP/1.1"
      */
-    enterRequestVersion(version) {
+    enterHttpRequestVersion(version) {
         this.stringBuilder.push(version + "</color>\\n");
     }
 
@@ -261,7 +261,7 @@ class SharkJsonListenerForPlantUml {
      * Note that each header ends with a linebreak.
      * @param headers Already explained.
      */
-    enterRequestHeaders(headers) {
+    enterHttpRequestLine(headers) {
         for (let index = 0; index < headers.length; index++) {
             const header = headers[index];
             const [name, ...rest] = header.split(":");
@@ -279,7 +279,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the HTTP version.
      * @param version Ex: "HTTP/1.1"
      */
-    enterResponseVersion(version) {
+    enterHttpResponseVersion(version) {
         this.stringBuilder.push("\nlocal <<-- " + this.host + ": <color red>" + version + " ");
     }
 
@@ -287,7 +287,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the status code.
      * @param statusCode Ex: "301"
      */
-    enterStatusCode(statusCode) {
+    enterHttpResponseCode(statusCode) {
         this.stringBuilder.push(statusCode + " ");
     }
 
@@ -295,7 +295,7 @@ class SharkJsonListenerForPlantUml {
      * Handle the reason phrase.
      * @param reasonPhrase Ex: "Moved Permanently"
      */
-    enterReasonPhrase(reasonPhrase) {
+    enterHttpResponseCodeDesc(reasonPhrase) {
         this.stringBuilder.push(reasonPhrase + "</color>\\n");
     }
 
@@ -317,9 +317,9 @@ class SharkJsonListenerForPlantUml {
      * Note that each header ends with a linebreak.
      * @param headers Already explained.
      */
-    enterResponseHeaders(headers) {
+    enterHttpResponseLine(headers) {
         // We can use the same logic.
-        this.enterRequestHeaders(headers);
+        this.enterHttpRequestLine(headers);
     }
 
     /**
@@ -327,7 +327,7 @@ class SharkJsonListenerForPlantUml {
      * @param body Ex: "<HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<TITLE>301 Moved<\/TITLE><\/HEAD><BODY>\n<H1>301 Moved<\/H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here<\/A>.\r\n<\/BODY><\/HTML>\r\n"
      *             Or, it can be hex value. In that case, we need to convert it to String.
      */
-    enterBody(body) {
+    enterHttpFileData(body) {
         this.stringBuilder.push(decodeHexOrString(body).replaceAll("\r", "\\r").replaceAll("\n", "\\n"));
     }
 
