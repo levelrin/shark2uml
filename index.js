@@ -184,6 +184,21 @@ function walkSharkJson(sharkJson, listener) {
         if (httpFileData !== undefined) {
             listener.enterHttpFileData(httpFileData[0]);
         }
+        // Request Ex: [":method", ":scheme", ":authority", ":path", "user-agent", "accept"]
+        // Response Ex: [":status", "location", "content-type", "content-security-policy-report-only", "date", "expires", "cache-control", "server", "content-length", "x-xss-protection", "x-frame-options", "alt-svc"]
+        const http2HeaderName = message._source?.layers?.["http2.header.name"];
+        // Request Ex: ["GET", "https", "google.com", "/", "curl/8.7.1", "*/*"]
+        // Response Ex: ["301", "https://www.google.com/", "text/html; charset=UTF-8", "object-src 'none';base-uri 'self';script-src 'nonce-bCLHu' 'strict-dynamic' 'report-sample' 'unsafe-eval' 'unsafe-inline' https: http:;report-uri https://csp.withgoogle.com/csp/gws/other-hp", "Sun, 10 Aug 2025 20:46:02 GMT", "Tue, 09 Sep 2025 20:46:02 GMT", "public, max-age=2592000", "gws", "220", "0", "SAMEORIGIN", "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"]
+        const http2HeaderValue = message._source?.layers?.["http2.header.value"];
+        if (http2HeaderName !== undefined && http2HeaderValue !== undefined) {
+            listener.enterHttp2HeaderNameAndHttp2HeaderValue(http2HeaderName, http2HeaderValue);
+        }
+        // HTTP 2 Body in binary (hex).
+        // Ex: [binary]
+        const http2BodyReassembledData = message._source?.layers?.["http2.body.reassembled.data"];
+        if (http2BodyReassembledData !== undefined) {
+            listener.enterHttp2BodyReassembledData(http2BodyReassembledData[0]);
+        }
     });
 }
 
@@ -329,6 +344,40 @@ class SharkJsonListenerForPlantUml {
      */
     enterHttpFileData(body) {
         this.stringBuilder.push(decodeHexOrString(body).replaceAll("\r", "\\r").replaceAll("\n", "\\n"));
+    }
+
+    /**
+     * Handle (request line or response line) + headers.
+     * @param http2HeaderName Request Ex: [":method", ":scheme", ":authority", ":path", "user-agent", "accept"]
+     *                        Response Ex: [":status", "location", "content-type", "content-security-policy-report-only", "date", "expires", "cache-control", "server", "content-length", "x-xss-protection", "x-frame-options", "alt-svc"]
+     * @param http2HeaderValue Request Ex: ["GET", "https", "google.com", "/", "curl/8.7.1", "*\/*"]
+     *                         Response Ex: ["301", "https://www.google.com/", "text/html; charset=UTF-8", "object-src 'none';base-uri 'self';script-src 'nonce-bCLHu' 'strict-dynamic' 'report-sample' 'unsafe-eval' 'unsafe-inline' https: http:;report-uri https://csp.withgoogle.com/csp/gws/other-hp", "Sun, 10 Aug 2025 20:46:02 GMT", "Tue, 09 Sep 2025 20:46:02 GMT", "public, max-age=2592000", "gws", "220", "0", "SAMEORIGIN", "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"]
+     */
+    enterHttp2HeaderNameAndHttp2HeaderValue(http2HeaderName, http2HeaderValue) {
+        if (http2HeaderName.includes(":method")) {
+            // It's a request.
+            const authorityIndex = http2HeaderName.indexOf(":authority");
+            this.host = http2HeaderValue[authorityIndex];
+            this.stringBuilder.push("\nlocal -> " + this.host + ":\\n");
+        } else if (http2HeaderName.includes(":status")) {
+            // It's a response.
+            this.stringBuilder.push("\nlocal <<-- " + this.host + ":\\n");
+        }
+        for (let index = 0; index < http2HeaderName.length; index++) {
+            this.stringBuilder.push("<color blue>" + http2HeaderName[index] + "</color>: <color green>" + http2HeaderValue[index] + "</color>\\n");
+            if (index === http2HeaderName.length - 1) {
+                this.stringBuilder.push("\\n");
+            }
+        }
+    }
+
+    /**
+     * Handle the HTTP 2 body.
+     * @param body Binary in hex.
+     */
+    enterHttp2BodyReassembledData(body) {
+        // Same as HTTP 1.
+        this.enterHttpFileData(body);
     }
 
 }
